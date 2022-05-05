@@ -13,7 +13,7 @@
 # -------------------------------------------------------------------------------
 
 import pandas as pd
-# from pandas_datareader import data
+import logging
 import requests
 import praw
 import time
@@ -21,9 +21,12 @@ import sys
 from datetime import datetime
 from praw.models import MoreComments
 
+logging.basicConfig(level=logging.INFO, filename='scrapper.log', filemode='w', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
+logging.info('Scraping start')
+
 reddit = praw.Reddit(client_id="",
                     client_secret="",
-                    redirect_uri="http://localhost:8888",
+                    redirect_uri="",
                     user_agent="")
 print(reddit.auth.url(["identity"], "...", "permanent"))
 
@@ -35,7 +38,6 @@ def submissions_pushshift_praw(subreddit, start=None, end=None, limit=1000, extr
     now = int(time.time())
     start = max(int(start) + utc_offset if start else 0, 0)
     end = min(int(end) if end else now, now) + utc_offset
-    # extra_query = 'science'
 
     # Format our search link properly.
     search_link = ('https://api.pushshift.io/reddit/submission/search/'
@@ -44,7 +46,8 @@ def submissions_pushshift_praw(subreddit, start=None, end=None, limit=1000, extr
 
     # Get the data from Pushshift as JSON.
     retrieved_data = requests.get(search_link)
-    # print(retrieved_data.json())
+    print(retrieved_data.json())
+
     returned_submissions = retrieved_data.json()['data']
 
     # Iterate over the returned submissions to convert them to PRAW submission objects.
@@ -54,6 +57,11 @@ def submissions_pushshift_praw(subreddit, start=None, end=None, limit=1000, extr
         matching_praw_submissions.append(praw_submission)
 
     # Return all PRAW submissions that were obtained.
+    if len(matching_praw_submissions) > 0:
+        logging.info('API fetch successful')
+    else:
+        logging.info('No data fetched from the API call')
+
     return matching_praw_submissions
 
 
@@ -71,11 +79,10 @@ def get_time(t):
 start_date = get_time(start)
 end_date = get_time(end)
 
-
 posts = pd.DataFrame(columns=['title', 'score', 'upvote_ratio', 'id',
                               'subreddit', 'url', 'num_comments', 'comments', 'body', 'created'])  # Dataframe to store results
 
-comments_table = pd.DataFrame(columns=['id', 'author', 'author_id','subreddit', 'comment', 'created'])  # Dataframe to store comments
+comments_table = pd.DataFrame(columns=['id', 'author', 'author_id','post_id','subreddit', 'comment', 'created'])  # Dataframe to store comments
 
 while start_date < end_date:  # Continue loop until end date is reached
     S = submissions_pushshift_praw(subreddit= subredditid,
@@ -100,11 +107,11 @@ while start_date < end_date:  # Continue loop until end date is reached
                             'id': top_level_comment.id,
                             'author': top_level_comment.author,
                             'author_id': redditor_id.id,
+                            'post_id': post.id,
                             'subreddit': post.subreddit,
                             'comment': top_level_comment.body,
                             'created': str(datetime.fromtimestamp(created)),
                         }, ignore_index=True)
-                        # print(comments_table)
 
                     posts = posts.append(
                         {'title': post.title,
@@ -117,19 +124,23 @@ while start_date < end_date:  # Continue loop until end date is reached
                          'comments': comments,
                          'body': post.selftext,
                          'created': post.created}, ignore_index=True)  # Retrieve post data and append to dataframe
-                    # print(posts)
+
         except:
+            logging.error('Error extracting the data', post)
             continue
             # next()   Continue loop if error is founD
 
     if len(S) < 100:  # To identify when the last pull is reached
         break
-
     start_date = posts['created'].max()  # Select the next earliest date to pull posts from
-    print(start_date)  # An indicator of progress
+    logging.info('Batch update')
+    # print(start_date)  # An indicator of progress
 
 
+logging.info('Process completed with posts: %s', posts.shape[0])
+logging.info(logging.info('Process completed with comments: %s', comments_table.shape[0]))
 comments_table['created'] = pd.to_datetime(posts['created'],unit='s')
 posts['created'] = pd.to_datetime(posts['created'],unit='s')  # Converting Unix time to human readable
 comments_table.to_csv('reddit_data_comments.csv', index=False)  # Export data to .csv file
 posts.to_csv('reddit_data.csv', index=False)  # Export data to .csv file
+logging.info('Scraping complete!')
