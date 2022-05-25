@@ -1,6 +1,6 @@
 # Web_Scrapers
 
-<h3> Running Reddit Web Scraper </h3>
+<b>********* Reddit Data Scraper ************</b>
 1. Clone the files to the local system from the repository from master repo
 2. Run the command `pip/pip3 install -r requirements.txt` (This installs the packages required by the python file to run)
 3. Refer the following instructions to create an app and generate the keys required for the reddit scrapper: 
