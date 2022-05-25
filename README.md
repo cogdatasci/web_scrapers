@@ -1,5 +1,6 @@
-# web_scrapers
+# Web_Scrapers
 
+<h3> Running Reddit Web Scraper </h3>
 1. Clone the files to the local system from the repository from master repo
 2. Run the command `pip/pip3 install -r requirements.txt` (This installs the packages required by the python file to run)
 3. Refer the following instructions to create an app and generate the keys required for the reddit scrapper: 
@@ -20,6 +21,9 @@
         <br> — Subreddit id is of the form - r/subreddit_id (for a particular page) </ul>
         <br> — Query could be a string to filter out contents related to it </ul>
 7. The execution generates 2 csv files in the current directory (reddit_data.csv and reddit_data_comments.csv)
-
+8. After running the Reddit_Data_Scraper.py, run <b>Push_Data.py</b> to push the data scraped to the database
+9. Fill the credentials in Push_Data.py received from the secure password management tool
+10. Run the commmand `python3 Push_Data.py` in the terminal and monitor the console for response
+11. After the completion of the process, you will observe - <b>Process Complete</b> message
 
 
