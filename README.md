@@ -23,7 +23,7 @@
 7. The execution generates 2 csv files in the current directory (reddit_data.csv and reddit_data_comments.csv)
 8. After running the Reddit_Data_Scraper.py, run <b>Push_Data.py</b> to push the data scraped to the database
 9. Fill the credentials in Push_Data.py received from the secure password management tool
-10. Run the commmand `python3 Push_Data.py` in the terminal and monitor the console for response
+10. Run the command `python3 Push_Data.py` in the terminal and monitor the console for response
 11. After the completion of the process, you will observe - <b>Process Complete</b> message
 
 
